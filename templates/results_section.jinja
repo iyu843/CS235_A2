@@ -1,0 +1,41 @@
+<section>
+<table>
+<tr>
+  <th>Title</th>
+  <th>Year</th>
+  <th>Genres</th>
+  <th>Actors</th>
+</tr>
+{% for entry in results_list %}
+  <tr>
+    <td>{{entry['title']}}</td>
+    <td>{{entry['year']}}</td>
+    <td style="white-space:pre;">{{entry['actors']}}</td>
+    <td style="white-space:pre;">{{entry['genres']}}</td>
+  </tr>
+{% endfor %}
+<table>
+{% if max_page > 0 %}
+  {% if max_page <= 5 %}
+    {% for i in range(max_page-1) %}
+      <a href={{page_hrefs[i]}}>{{i+1}}</a>,
+    {% endfor %}
+  {% else %}
+    <a href={{page_hrefs[0]}}>1</a>,
+    {% if page_num <= 3 %}
+      <a href={{page_hrefs[1]}}>2</a>,
+      <a href={{page_hrefs[2]}}>3</a>,
+      <a href={{page_hrefs[3]}}>4</a>,..,
+    {% elif page_num >= max_page-3 %}
+      ..,<a href={{page_hrefs[max_page-4]}}>{{max_page-3}}</a>,
+      <a href={{page_hrefs[max_page-3]}}>{{max_page-2}}</a>,
+      <a href={{page_hrefs[max_page-2]}}>{{max_page-1}}</a>,
+    {% else %}
+      ..,<a href={{page_hrefs[page_num-2]}}>{{page_num-1}}</a>,
+      <a href={{page_hrefs[page_num-1]}}>{{page_num}}</a>,
+      <a href={{page_hrefs[page_num]}}>{{page_num+1}}</a>,..
+    {% endif %}
+  {% endif %}
+  <a href={{page_hrefs[max_page-1]}}>{{max_page}}</a>
+{% endif %}
+</section>
