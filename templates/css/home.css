@@ -1,0 +1,19 @@
+
+#search_section{
+	margin-top:50vh;
+}
+
+.input_label{
+	margin: 5px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 48px;
+}
+
+.text_input{
+	width:60%;
+	padding:10px;
+	line-height: 48px;
+	font-size:36px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+

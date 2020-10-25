@@ -1,4 +1,4 @@
-<section>
+<section id="search_section">
     <script>
       const search = ()=>{
         const searchbox = document.getElementById("searchbox");
@@ -8,5 +8,5 @@
         window.location.href = url.toString();
       };
     </script>
-    <label>search:<input id="searchbox" type=text {{'value='+query_string if query_string else ""}} {{'autofocus' if focus_search}} onfocus="this.selectionStart=this.value.length" onChange="search()"/></label>
+    <label class="input_label">Search:</label><input id="searchbox" class="text_input" type=text {{'value='+query_string if query_string else ""}} {{'autofocus' if focus_search}} onfocus="this.selectionStart=this.value.length" onChange="search()"/>
 </section>

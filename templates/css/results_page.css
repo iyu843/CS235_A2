@@ -1,0 +1,85 @@
+#results_section {
+	width: 80%;
+	margin: auto;
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+#results_section table{
+	width:100%;
+	table-layout:fixed;
+	border: 2px solid black;
+	border-collapse: collapse;
+}
+
+#results_section thead{
+	width:100%;
+	font-size:26px;
+	padding-left: 5px;
+	font-weight:normal;
+	border: 2px solid black;
+}
+
+#results_section tbody{
+	width:100%;
+	border: 2px solid black;
+	text-align:center;
+}
+#results_section tr{
+	border: 2px solid black;
+}
+#results_section td{
+	text-overflow:ellipsis;
+	background-color:#EEE;
+}
+
+#results_section td {
+	padding: 10px;
+	font-size: 18px;
+	border: 2px solid black;
+}
+#pagination_links {
+	width: 100%;
+	margin: auto;
+	margin-top:10px;
+	margin-bottom:10px;
+	padding: 5px;
+	text-align: center;
+}
+
+#pagination_links a {
+	color: #000;
+	font-size:24px;
+	text-decoration: none;
+}
+
+#pagination_links .selected {
+	text-decoration: underline !important;
+	font-weight:bold;
+}
+
+.table_header_row {
+	width:100%;
+	background-color:#88F;
+}
+
+#search_section {
+	width: 80%;
+	margin: auto;
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+#search_section .input_label{
+	margin: 5px;
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 48px;
+}
+
+#search_section .text_input{
+	width:60%;
+	padding:10px;
+	line-height: 48px;
+	font-size:36px;
+	font-family: Arial, Helvetica, sans-serif;
+}
+

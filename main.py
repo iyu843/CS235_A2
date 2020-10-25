@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from jinja2 import Template
 from datafilereaders.movie_file_csv_reader import MovieFileCSVReader
 import os
@@ -27,28 +27,31 @@ for i in range(len(data_reader.dataset_of_movies)):
         "idx": i,
         "title": data_reader.dataset_of_movies[i].title,
         "year": data_reader.dataset_of_movies[i].year,
-        "actors": ",\n".join(x.actor_full_name for x in data_reader.dataset_of_movies[i].actors),
-        "genres": ",\n".join(x.genre_name for x in data_reader.dataset_of_movies[i].genres),
+        "actors": "\n".join(x.actor_full_name for x in data_reader.dataset_of_movies[i].actors),
+        "genres": "\n".join(x.genre_name for x in data_reader.dataset_of_movies[i].genres),
     }
     movies_index.append(data)
-    if data["title"] not in title_index:
-        title_index[data["title"]] = []
-    title_index[data["title"]].append(data)
+    title_str = data["title"].lower()
+    if title_str not in title_index:
+        title_index[title_str] = []
+    title_index[title_str].append(data)
     year_str = str(data["year"])
     if year_str not in year_index:
         year_index[year_str] = []
     year_index[year_str].append(data)
     for actor in data_reader.dataset_of_movies[i].actors:
         # actor_full_name is expected to identify an actor
-        if actor.actor_full_name not in actor_index:
-            actor_index[actor.actor_full_name] = []
-        actor_index[actor.actor_full_name].append(data)
+        name = actor.actor_full_name.lower()
+        if name not in actor_index:
+            actor_index[name] = []
+        actor_index[name].append(data)
 
     for genre in data_reader.dataset_of_movies[i].genres:
         # genre_name is expected to identify a genre
-        if genre.genre_name not in genre_index:
-            genre_index[genre.genre_name] = []
-        genre_index[genre.genre_name].append(data)
+        name = genre.genre_name.lower()
+        if name not in genre_index:
+            genre_index[name] = []
+        genre_index[name].append(data)
 
 
 title_trie = {"*": [{}, False]}
@@ -122,7 +125,7 @@ sortby_vals = ["title", "year", "actors", "genres"]
 searchby_vals = ["title", "year", "actor", "genre"]
 
 parameter_defaults = {
-    "q": None,
+    "q": "",
     "page": 1,
     "num-results": 10,
     "sortby": "title",
@@ -152,7 +155,7 @@ class QueryFactory:
             raise ValueError("bad sortby param")
         # path important for anchor tags with different parameters
         self._path = path
-        self._query_string = query_string
+        self._query_string = query_string.lower()
         self._results_per_page = results_per_page
         self._sortby = sortby
         self._searchby = searchby
@@ -313,7 +316,8 @@ class QueryFactory:
 def get_query_factory_from_params():
     factory_kwargs = {}
     query_string = request.args.get("q")
-    factory_kwargs["query_string"] = query_string
+    if query_string is not None:
+        factory_kwargs["query_string"] = query_string
     page_num = request.args.get("page")
     # sanitise page_num
     try:
@@ -389,6 +393,11 @@ def search():
     results_section = query_factory.render_section()
     results_template = Template(open("templates/results_page.jinja", "r").read())
     return results_template.render(results_section=results_section, search_section=search_section)
+
+
+@app.route("/css/<path:path>")
+def send_css(path):
+    return send_from_directory("templates/css", path)
 
 
 if __name__ == "__main__":
