@@ -17,15 +17,30 @@ if DATA_PATH_ENV in os.environ:
 data_reader = MovieFileCSVReader(data_path)
 data_reader.read_csv_file()
 
-movies_index = [
-    {
-        "title": entry.title,
-        "year": entry.year,
-        "actors": ",\n".join(x.actor_full_name for x in entry.actors),
-        "genres": ",\n".join(x.genre_name for x in entry.genres),
+movies_index = []
+actors_index = {}
+genres_index = {}
+for i in range(len(data_reader.dataset_of_movies)):
+    data = {
+        "idx": i,
+        "title": data_reader.dataset_of_movies[i].title,
+        "year": data_reader.dataset_of_movies[i].year,
+        "actors": ",\n".join(x.actor_full_name for x in data_reader.dataset_of_movies[i].actors),
+        "genres": ",\n".join(x.genre_name for x in data_reader.dataset_of_movies[i].genres),
     }
-    for entry in data_reader.dataset_of_movies
-]
+    movies_index.append(data)
+    for actor in data_reader.dataset_of_movies[i].actors:
+        # actor_full_name is expected to identify an actor
+        if actor.actor_full_name not in actors_index:
+            actors_index[actor.actor_full_name] = []
+        actors_index[actor.actor_full_name].append(data)
+
+    for genre in data_reader.dataset_of_movies[i].genres:
+        # genre_name is expected to identify a genre
+        if genre.genre_name not in genres_index:
+            genres_index[genre.genre_name] = []
+        genres_index[genre.genre_name].append(data)
+
 
 sortby_vals = ["title", "year", "actors", "genres"]
 searchby_vals = ["title", "year", "actor", "genre"]
@@ -89,10 +104,20 @@ class QueryFactory:
         return query_results
 
     def get_actor_results(self):
-        pass
+        query_results = actors_index
+        rv = {}
+        for key in query_results:
+            for entry in query_results[key]:
+                rv[entry["idx"]] = entry
+        return list(rv.values())
 
     def get_genre_results(self):
-        pass
+        query_results = genres_index
+        rv = {}
+        for key in query_results:
+            for entry in query_results[key]:
+                rv[entry["idx"]] = entry
+        return list(rv.values())
 
     def _filter(self, results):
         tp = results[:]
