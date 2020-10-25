@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+</head>
+<body>
+<script>
+  const search = ()=>{
+    const searchbox = document.getElementById("searchbox");
+    if(typeof searchbox === "null") return;
+    const val = searchbox.value;
+    const url = new URL('/search?q='+val+'&focus-search=true',window.location.origin);
+    window.location.href = url.toString();
+  };
+</script>
+<label>search:<input id="searchbox" type=text onchange="search();"/></label>
+</body>
+</html>

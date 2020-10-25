@@ -3,8 +3,8 @@
 <tr>
   <th>Title</th>
   <th>Year</th>
-  <th>Genres</th>
   <th>Actors</th>
+  <th>Genres</th>
 </tr>
 {% for entry in results_list %}
   <tr>
@@ -26,7 +26,7 @@
       <a href={{page_hrefs[1]}}>2</a>,
       <a href={{page_hrefs[2]}}>3</a>,
       <a href={{page_hrefs[3]}}>4</a>,..,
-    {% elif page_num >= max_page-3 %}
+    {% elif page_num > max_page-3 %}
       ..,<a href={{page_hrefs[max_page-4]}}>{{max_page-3}}</a>,
       <a href={{page_hrefs[max_page-3]}}>{{max_page-2}}</a>,
       <a href={{page_hrefs[max_page-2]}}>{{max_page-1}}</a>,

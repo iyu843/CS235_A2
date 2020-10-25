@@ -18,8 +18,10 @@ data_reader = MovieFileCSVReader(data_path)
 data_reader.read_csv_file()
 
 movies_index = []
-actors_index = {}
-genres_index = {}
+title_index = {}
+year_index = {}
+actor_index = {}
+genre_index = {}
 for i in range(len(data_reader.dataset_of_movies)):
     data = {
         "idx": i,
@@ -29,17 +31,91 @@ for i in range(len(data_reader.dataset_of_movies)):
         "genres": ",\n".join(x.genre_name for x in data_reader.dataset_of_movies[i].genres),
     }
     movies_index.append(data)
+    if data["title"] not in title_index:
+        title_index[data["title"]] = []
+    title_index[data["title"]].append(data)
+    year_str = str(data["year"])
+    if year_str not in year_index:
+        year_index[year_str] = []
+    year_index[year_str].append(data)
     for actor in data_reader.dataset_of_movies[i].actors:
         # actor_full_name is expected to identify an actor
-        if actor.actor_full_name not in actors_index:
-            actors_index[actor.actor_full_name] = []
-        actors_index[actor.actor_full_name].append(data)
+        if actor.actor_full_name not in actor_index:
+            actor_index[actor.actor_full_name] = []
+        actor_index[actor.actor_full_name].append(data)
 
     for genre in data_reader.dataset_of_movies[i].genres:
         # genre_name is expected to identify a genre
-        if genre.genre_name not in genres_index:
-            genres_index[genre.genre_name] = []
-        genres_index[genre.genre_name].append(data)
+        if genre.genre_name not in genre_index:
+            genre_index[genre.genre_name] = []
+        genre_index[genre.genre_name].append(data)
+
+
+title_trie = {"*": [{}, False]}
+for key in title_index:
+    node = title_trie["*"]
+    for i in range(len(key)):
+        if key[i] in node[0]:
+            node = node[0][key[i]]
+        else:
+            new_node = [{}, False]
+            node[0][key[i]] = new_node
+            node = new_node
+    node[1] = True
+
+year_trie = {"*": [{}, False]}
+for key in year_index:
+    node = year_trie["*"]
+    for i in range(len(key)):
+        if key[i] in node[0]:
+            node = node[0][key[i]]
+        else:
+            new_node = [{}, False]
+            node[0][key[i]] = new_node
+            node = new_node
+    node[1] = True
+
+actor_trie = {"*": [{}, False]}
+for key in actor_index:
+    node = actor_trie["*"]
+    for i in range(len(key)):
+        if key[i] in node[0]:
+            node = node[0][key[i]]
+        else:
+            new_node = [{}, False]
+            node[0][key[i]] = new_node
+            node = new_node
+    node[1] = True
+
+genre_trie = {"*": [{}, False]}
+for key in genre_index:
+    node = genre_trie["*"]
+    for i in range(len(key)):
+        if key[i] in node[0]:
+            node = node[0][key[i]]
+        else:
+            new_node = [{}, False]
+            node[0][key[i]] = new_node
+            node = new_node
+    node[1] = True
+
+
+def get_trie_strings(trienode, prefix, rv):
+    if trienode[1]:
+        rv.append(prefix)
+    for c in trienode[0]:
+        get_trie_strings(trienode[0][c], prefix + c, rv)
+
+
+def query_trie(trie, prefix):
+    node = trie["*"]
+    for i in range(len(prefix)):
+        if prefix[i] not in node[0]:
+            return []
+        node = node[0][prefix[i]]
+    rv = []
+    get_trie_strings(node, prefix, rv)
+    return rv
 
 
 sortby_vals = ["title", "year", "actors", "genres"]
@@ -82,29 +158,59 @@ class QueryFactory:
         self._searchby = searchby
         self._reverse = reverse
 
-        results = self.get_title_results()
+        results = None
         if searchby == "year":
             results = self.get_year_results()
+        if searchby == "title":
+            results = self.get_title_results()
         elif searchby == "actor":
             results = self.get_actor_results()
         elif searchby == "genre":
             results = self.get_genre_results()
-        self._max_page = int(math.ceil(len(results) / results_per_page))
+        else:
+            results = self.get_all_results()
+        self._max_page = max(1, int(math.ceil(len(results) / results_per_page)))
         self._page_num = page_num
         if page_num > self._max_page:
             self._page_num = self._max_page
         self._results_list = self._filter(results)
 
+    def get_all_results(self):
+        title_keys = query_trie(title_trie, self.query_string)
+        query_results = {x: title_index[x] for x in title_keys}
+        year_keys = query_trie(year_trie, self.query_string)
+        query_results.update({x: year_index[x] for x in year_keys})
+        actor_keys = query_trie(actor_trie, self.query_string)
+        query_results.update({x: actor_index[x] for x in actor_keys})
+        genre_keys = query_trie(genre_trie, self.query_string)
+        query_results.update({x: genre_index[x] for x in genre_keys})
+        rv = {}
+        for key in query_results:
+            for entry in query_results[key]:
+                rv[entry["idx"]] = entry
+        return list(rv.values())
+
     def get_title_results(self):
-        query_results = movies_index
-        return query_results
+        query_keys = query_trie(title_trie, self.query_string)
+        query_results = {x: title_index[x] for x in query_keys}
+        rv = {}
+        for key in query_results:
+            for entry in query_results[key]:
+                rv[entry["idx"]] = entry
+        return list(rv.values())
 
     def get_year_results(self):
-        query_results = movies_index
-        return query_results
+        query_keys = query_trie(year_trie, self.query_string)
+        query_results = {x: year_index[x] for x in query_keys}
+        rv = {}
+        for key in query_results:
+            for entry in query_results[key]:
+                rv[entry["idx"]] = entry
+        return list(rv.values())
 
     def get_actor_results(self):
-        query_results = actors_index
+        query_keys = query_trie(actor_trie, self.query_string)
+        query_results = {x: actor_index[x] for x in query_keys}
         rv = {}
         for key in query_results:
             for entry in query_results[key]:
@@ -112,7 +218,8 @@ class QueryFactory:
         return list(rv.values())
 
     def get_genre_results(self):
-        query_results = genres_index
+        query_keys = query_trie(genre_trie, self.query_string)
+        query_results = {x: genre_index[x] for x in query_keys}
         rv = {}
         for key in query_results:
             for entry in query_results[key]:
@@ -257,7 +364,7 @@ app = Flask("Movie_Model_Viewer")
 
 @app.route("/")
 def root():
-    ret = open("index.html").read()
+    ret = open("templates/index.html").read()
     return app.response_class(response=ret, status=200)
 
 
@@ -269,11 +376,19 @@ def query():
 
 @app.route("/search")
 def search():
-    print(request.path)
+    # sanitise parameters
+    query_string = request.args.get("q")
+    if query_string is None:
+        query_string = ""
+    focus_search = request.args.get("focus-search")
+    if focus_search != "true":
+        focus_search = False
+    search_template = Template(open("templates/search_section.jinja", "r").read())
+    search_section = search_template.render(query_string=query_string, focus_search=focus_search)
     query_factory = get_query_factory_from_params()
     results_section = query_factory.render_section()
     results_template = Template(open("templates/results_page.jinja", "r").read())
-    return results_template.render(results_section=results_section)
+    return results_template.render(results_section=results_section, search_section=search_section)
 
 
 if __name__ == "__main__":
